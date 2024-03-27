@@ -6,10 +6,10 @@ Description: Helper file which contains the functions used for Non-Maximum Suppr
 import numpy as np
 
 
-def imagePolish(image, threshold):
+def image_polish(image, threshold):
     """
     Final polish up of the image after Non-Maximum Suppression has been applied. This will convert the image to an
-    unsigned 8 bit integer which will allow for display and saving.
+    unsigned 8-bit integer which will allow for display and saving.
 
     :param image: The pre-processed image as a 2D numpy array.
     :param threshold: The lower bound value to re-apply to the image. This is due to changing from float back to uint8.
@@ -25,7 +25,7 @@ def imagePolish(image, threshold):
     return image
 
 
-def roundNearestDegree(deg):
+def round_nearest_degree(deg):
     """
     A function that will round a degree value to one of 8 values respective to their sub quadrants in the unit circle.
 
@@ -64,7 +64,7 @@ def roundNearestDegree(deg):
         return 315
 
 
-def nonMaxSuppression(gradientMagnitudes, gradientAngles, threshold):
+def non_max_suppression(gradient_magnitudes, gradient_angles, threshold):
     """
     A helper function to perform Non-Maximum suppression. This function will first round the Gradient Angles matrix,
     then determine which pixels to compare based on the rounded values. It will perform the following comparisons:
@@ -76,62 +76,62 @@ def nonMaxSuppression(gradientMagnitudes, gradientAngles, threshold):
         * If the angle is a Quadrant II or IV angle (135 or 315), it means the edge is diagonal and will check pixels
           in those Quadrants
 
-    :param gradientMagnitudes: A 2D numpy array of the image after the Sobel filter is applied
-    :param gradientAngles: A 2D numpy array containing the direction of the Gradient after the Sobel filter is applied.
+    :param gradient_magnitudes: A 2D numpy array of the image after the Sobel filter is applied
+    :param gradient_angles: A 2D numpy array containing the direction of the Gradient after the Sobel filter is applied.
     :param threshold: An 8 bit [0-255] threshold value to clean the image after performing Non-Maximum Suppression.
     :return: The finalized image as a 2D numpy array
     """
-    scaledAngles = np.int16(gradientAngles)
-    bufferImage = np.zeros(shape=gradientMagnitudes.shape, dtype=gradientMagnitudes.dtype)
+    scaled_angles = np.int16(gradient_angles)
+    buffer_image = np.zeros(shape=gradient_magnitudes.shape, dtype=gradient_magnitudes.dtype)
 
     # Vectorizing the function increases its efficiency
-    degreeRounder = np.vectorize(roundNearestDegree)
-    scaledAngles = degreeRounder(scaledAngles)
+    degree_rounder = np.vectorize(round_nearest_degree)
+    scaled_angles = degree_rounder(scaled_angles)
 
     # Creating a 1 pixel wide buffer zone across the input image to allow for diagonal pixel checking
-    for i in range(1, len(scaledAngles) - 1):
-        for j in range(1, len(scaledAngles[i]) - 1):
-            magnitude = gradientMagnitudes[i, j]
-            theta = scaledAngles[i, j]
+    for i in range(1, len(scaled_angles) - 1):
+        for j in range(1, len(scaled_angles[i]) - 1):
+            magnitude = gradient_magnitudes[i, j]
+            theta = scaled_angles[i, j]
 
             # Horizontal edge -- check above and below
             if theta == 90 or theta == 270:
-                above = gradientMagnitudes[i - 1, j]
-                below = gradientMagnitudes[i + 1, j]
+                above = gradient_magnitudes[i - 1, j]
+                below = gradient_magnitudes[i + 1, j]
                 if magnitude > above and magnitude > below:
-                    bufferImage[i, j] = magnitude
+                    buffer_image[i, j] = magnitude
                 else:
-                    bufferImage[i, j] = 0
+                    buffer_image[i, j] = 0
 
             # Vertical edge -- check left and right
             elif theta == 0 or theta == 180:
-                left = gradientMagnitudes[i, j - 1]
-                right = gradientMagnitudes[i, j + 1]
+                left = gradient_magnitudes[i, j - 1]
+                right = gradient_magnitudes[i, j + 1]
 
                 if magnitude > left and magnitude > right:
-                    bufferImage[i, j] = magnitude
+                    buffer_image[i, j] = magnitude
                 else:
-                    bufferImage[i, j] = 0
+                    buffer_image[i, j] = 0
 
             # Quadrant I and Quadrant III edge -- check both diagonal orientations
             elif theta == 45 or theta == 225:
-                upperDiagonal = gradientMagnitudes[i - 1, j - 1]
-                lowerDiagonal = gradientMagnitudes[i + 1, j + 1]
+                upper_diagonal = gradient_magnitudes[i - 1, j - 1]
+                lower_diagonal = gradient_magnitudes[i + 1, j + 1]
 
-                if magnitude > upperDiagonal and magnitude > lowerDiagonal:
-                    bufferImage[i, j] = magnitude
+                if magnitude > upper_diagonal and magnitude > lower_diagonal:
+                    buffer_image[i, j] = magnitude
                 else:
-                    bufferImage[i, j] = 0
+                    buffer_image[i, j] = 0
 
             # Quadrant II and Quadrant IV edge -- check both diagonal orientations
             elif theta == 135 or theta == 315:
-                upperDiagonal = gradientMagnitudes[i - 1, j + 1]
-                lowerDiagonal = gradientMagnitudes[i + 1, j - 1]
+                upper_diagonal = gradient_magnitudes[i - 1, j + 1]
+                lower_diagonal = gradient_magnitudes[i + 1, j - 1]
 
-                if magnitude > upperDiagonal and magnitude > lowerDiagonal:
-                    bufferImage[i, j] = magnitude
+                if magnitude > upper_diagonal and magnitude > lower_diagonal:
+                    buffer_image[i, j] = magnitude
                 else:
-                    bufferImage[i, j] = 0
+                    buffer_image[i, j] = 0
 
-    finalizedImage = imagePolish(bufferImage, threshold)
-    return finalizedImage
+    finalized_image = image_polish(buffer_image, threshold)
+    return finalized_image

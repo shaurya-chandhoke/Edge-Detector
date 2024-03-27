@@ -10,25 +10,25 @@ import time
 
 from src.gaussian import gaussian_process
 from src.gradient import gradient_process
-from src.non_max_suppression import nonMaxSuppression
+from src.non_max_suppression import non_max_suppression
 
 
-def finish(originalImg, grayScaleImage, gaussianImg, gradientImg, nonmaxImage, timeElapsed, nosave, noshow):
+def finish(original_img, gray_scale_image, gaussian_img, gradient_img, non_max_image, time_elapsed, no_save, no_show):
     """
     The final stages of the program. This function will display the images and/or write them to files as well as
     provide an execution time.
 
-    :param originalImg: The original image when running the program
-    :param grayScaleImage: The image after it has been read and converted into grayscale for the program
-    :param gaussianImg: The Grayscale image after a Gaussian blur of a specified sigma value has been applied
-    :param gradientImg: The Gaussian image after the Sobel filters and threshold value have been applied.
-    :param nonmaxImage: The Gradient image after Non-Maximum Suppression has been applied.
-    :param timeElapsed: The total execution time observed
-    :param nosave: Flag that determines whether to save the images to their respective files
-    :param noshow: Flag that determines whether to display the images as output
+    :param original_img: The original image when running the program
+    :param gray_scale_image: The image after it has been read and converted into grayscale for the program
+    :param gaussian_img: The Grayscale image after a Gaussian blur of a specified sigma value has been applied
+    :param gradient_img: The Gaussian image after the Sobel filters and threshold value have been applied.
+    :param non_max_image: The Gradient image after Non-Maximum Suppression has been applied.
+    :param time_elapsed: The total execution time observed
+    :param no_save: Flag that determines whether to save the images to their respective files
+    :param no_show: Flag that determines whether to display the images as output
     """
 
-    if (noshow is True) and (nosave is True):
+    if (no_show is True) and (no_save is True):
         print("(BOTH FLAGS ON) Recommend disabling either --nosave or --quiet to capture processed images")
         return 0
 
@@ -41,38 +41,38 @@ def finish(originalImg, grayScaleImage, gaussianImg, gradientImg, nonmaxImage, t
     It's suggested you choose a lower sigma value and try again.
     '''
 
-    # Scaling remaining images to unsigned 8 bit integers to allow displaying and writing in grayscale
-    scale_min = np.min(gaussianImg)
-    scale_max = np.max(gaussianImg)
-    gaussianImg = np.uint8((gaussianImg - scale_min) / (scale_max - scale_min) * 255)
+    # Scaling remaining images to unsigned 8-bit integers to allow displaying and writing in grayscale
+    scale_min = np.min(gaussian_img)
+    scale_max = np.max(gaussian_img)
+    gaussian_img = np.uint8((gaussian_img - scale_min) / (scale_max - scale_min) * 255)
 
-    scale_min = np.min(gradientImg)
-    scale_max = np.max(gradientImg)
-    gradientImg = np.uint8((gradientImg - scale_min) / (scale_max - scale_min) * 255)
+    scale_min = np.min(gradient_img)
+    scale_max = np.max(gradient_img)
+    gradient_img = np.uint8((gradient_img - scale_min) / (scale_max - scale_min) * 255)
 
     # Print warning message in case divide by 0 is detected
     if scale_min == 0 and scale_max == 0:
         print(warning)
 
-    if noshow is False:
+    if no_show is False:
         print("(DISPLAY ON) The ESC key will close all pop ups")
-        image1 = cv2.imshow("Original Image", originalImg)
-        image2 = cv2.imshow("Grayscale", grayScaleImage)
-        image3 = cv2.imshow("Gaussian Filtered", gaussianImg)
-        image4 = cv2.imshow("Sobel Filtered", gradientImg)
-        image5 = cv2.imshow("Non-Maximum Suppression", nonmaxImage)
+        cv2.imshow("Original Image", original_img)
+        cv2.imshow("Grayscale", gray_scale_image)
+        cv2.imshow("Gaussian Filtered", gaussian_img)
+        cv2.imshow("Sobel Filtered", gradient_img)
+        cv2.imshow("Non-Maximum Suppression", non_max_image)
         cv2.waitKey(0)
 
-    if nosave is False:
+    if no_save is False:
         print("(IMAGE SAVE ON) Images are being written to the ./out/ folder")
-        cv2.imwrite("./out/step_0_grayscale_result.jpg", grayScaleImage)
-        cv2.imwrite("./out/step_1_gaussianfiltered_result.jpg", gaussianImg)
-        cv2.imwrite("./out/step_2_sobelfiltered_result.jpg", gradientImg)
-        cv2.imwrite("./out/step_3_nonmaxsuppression_result.jpg", nonmaxImage)
+        cv2.imwrite("./out/step_0_grayscale_result.jpg", gray_scale_image)
+        cv2.imwrite("./out/step_1_gaussian_filtered_result.jpg", gaussian_img)
+        cv2.imwrite("./out/step_2_sobel_filtered_result.jpg", gradient_img)
+        cv2.imwrite("./out/step_3_non_max_suppression_result.jpg", non_max_image)
 
     print("(DONE): You may want to rerun the program with the --help flag for more options to fine tune the program")
     print("=" * 40)
-    print("Time to Process Image: {} seconds.".format(timeElapsed))
+    print("Time to Process Image: {} seconds.".format(time_elapsed))
 
 
 def start(image, sigma, threshold):
@@ -88,19 +88,19 @@ def start(image, sigma, threshold):
     print("Please wait, processing image and returning output...\n")
 
     print("(Step 1) Start: Applying Gaussian filter to input image")
-    gaussianImage, shape = gaussian_process(image, sigma)
+    gaussian_image, shape = gaussian_process(image, sigma)
     print("(Step 1) Complete: Applying Gaussian filter to input image [sigma={}, kernel shape={}]".format(sigma, shape))
 
     print("\n(Step 2) Start: Applying Sobel filter to resulting image")
-    gradientImage, gradientAngles = gradient_process(gaussianImage, threshold)
+    gradient_image, gradient_angles = gradient_process(gaussian_image, threshold)
     print("(Step 2a) Complete: Applying Sobel filter to resulting image. [sobel threshold: {}]".format(threshold))
     print("(Step 2b) Complete: Obtained Gradient magnitudes and directions")
 
     print("\n(Step 3) Start: Applying Non-Maximum Suppression to resulting image")
-    nonMaxSuppressedImage = nonMaxSuppression(gradientImage, gradientAngles, threshold)
+    non_max_suppressed_image = non_max_suppression(gradient_image, gradient_angles, threshold)
     print("(Step 3) Complete: Applying Non-Maximum Suppression to resulting image\n")
 
-    return gaussianImage, gradientImage, nonMaxSuppressedImage
+    return gaussian_image, gradient_image, non_max_suppressed_image
 
 
 def main():
@@ -131,34 +131,35 @@ def main():
     imgpath = args.imgpath
     sigma = args.sigma
     threshold = args.threshold
-    nosave = args.nosave
-    noshow = args.quiet
+    no_save = args.nosave
+    no_show = args.quiet
 
-    originalImage = cv2.imread(imgpath)
-    inputImage = cv2.imread(imgpath, cv2.IMREAD_GRAYSCALE)
+    original_image = cv2.imread(imgpath)
+    input_image = cv2.imread(imgpath, cv2.IMREAD_GRAYSCALE)
 
-    ADVICE = "rerun with the (-h, --help) for more information."
+    advice = "rerun with the (-h, --help) for more information."
 
-    if (inputImage is None) or (originalImage is None):
-        print("Error: Cannot open image.\nPlease check if the path is written correctly and try again or " + ADVICE)
+    if (input_image is None) or (original_image is None):
+        print("Error: Cannot open image.\nPlease check if the path is written correctly and try again or " + advice)
         return -1
 
     if sigma <= 0:
-        print("Error: Sigma value cannot be less than 1.\nPlease try again or " + ADVICE)
+        print("Error: Sigma value cannot be less than 1.\nPlease try again or " + advice)
         return -1
 
     if 0 > threshold or threshold > 255:
-        print("Error: Threshold range is [0-255].\nPlease ensure the threshold is within the range or " + ADVICE)
+        print("Error: Threshold range is [0-255].\nPlease ensure the threshold is within the range or " + advice)
         return -1
 
     np.seterr(all="ignore")
-    START_TIME = time.time()
+    start_time = time.time()
 
-    gaussianImage, gradientImage, nonMaxSuppressedImage = start(inputImage, sigma, threshold)
+    gaussian_image, gradient_image, non_max_suppressed_image = start(input_image, sigma, threshold)
 
-    ELAPSED_TIME = time.time() - START_TIME
+    elapsed_time = time.time() - start_time
 
-    finish(originalImage, inputImage, gaussianImage, gradientImage, nonMaxSuppressedImage, ELAPSED_TIME, nosave, noshow)
+    finish(original_image, input_image, gaussian_image, gradient_image, non_max_suppressed_image, elapsed_time, no_save,
+           no_show)
 
 
 if __name__ == "__main__":
